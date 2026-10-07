@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Um apoio visual e interativo para uma aula sobre LangChain, LangGraph e aplicações com LLMs.">
+  <meta name="theme-color" content="#2455d6">
+  <title>LangChain e LangGraph — Construindo aplicações com LLMs</title>
+  <script>
+    // Apply the preferred theme before the stylesheet to avoid a bright flash.
+    (() => {
+      let savedTheme;
+      try { savedTheme = localStorage.getItem("lesson-theme"); } catch {}
+      document.documentElement.dataset.theme = savedTheme === "light" || savedTheme === "dark"
+        ? savedTheme
+        : window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    })();
+  </script>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232455d6'/%3E%3Cpath d='M9 9L23 16L9 23M9 9V23' fill='none' stroke='white' stroke-width='2'/%3E%3Ccircle cx='9' cy='9' r='3' fill='white'/%3E%3Ccircle cx='9' cy='23' r='3' fill='white'/%3E%3Ccircle cx='23' cy='16' r='3' fill='white'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/styles.css">
+  <script src="js/app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+  <aside class="sidebar" id="sidebar">
+    <a class="brand" href="#langchain" aria-label="Voltar ao início da aula"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M8 8 24 16 8 24V8"/><circle cx="8" cy="8" r="3"/><circle cx="8" cy="24" r="3"/><circle cx="24" cy="16" r="3"/></svg><span>Fluxos com LLMs<small>GUIA DA AULA</small></span></a>
+    <div class="nav-label">CONTEÚDO</div>
+    <nav aria-label="Seções da aula">
+      <a href="#langchain" class="active" aria-current="location"><span>01</span>LangChain</a>
+      <a href="#langgraph"><span>02</span>LangGraph</a>
+      <a href="#comparacao"><span>03</span>LangChain vs LangGraph</a>
+      <a href="#state"><span>04</span>State</a>
+      <a href="#nodes"><span>05</span>Nodes</a>
+      <a href="#edges"><span>06</span>Edges</a>
+      <a href="#conditional"><span>07</span>Conditional Edges</a>
+      <a href="#prompts"><span>08</span>Prompt Engineering</a>
+      <a href="#providers"><span>09</span>Providers</a>
+      <a href="#checkpoints"><span>10</span>Checkpoints</a>
+      <a href="#rag"><span>11</span>Próximo passo: RAG</a>
+    </nav>
+    <div class="sidebar-foot"><span class="small-rule"></span><strong>Da composição ao controle.</strong><p>Conceitos aqui.<br>Código no notebook.</p><span class="offline-label">HTML · CSS · JavaScript</span></div>
+  </aside>
+  <div class="page-shell">
+    <header class="topbar">
+      <button class="menu-button" id="menu-toggle" aria-label="Abrir conteúdo da aula" aria-controls="sidebar" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+      <div class="breadcrumb">APLICAÇÕES COM LLMS <span>/</span> <strong id="current-section">LangChain</strong></div>
+      <div class="topbar-actions">
+        <div class="lesson-progress"><span id="progress-label">01 / 11</span><div class="progress-track" role="progressbar" aria-label="Progresso da aula" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="progress-fill"></span></div></div>
+        <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Ativar modo escuro" title="Ativar modo escuro">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><g class="theme-moon"><path d="M20.5 13.5A8.5 8.5 0 0 1 10.5 3.4a8.5 8.5 0 1 0 10 10.1Z"/></g><g class="theme-sun"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></g></svg>
+          <span class="theme-label" id="theme-label">Modo escuro</span>
+        </button>
+      </div>
+    </header>
+    <main id="conteudo">
+      <section class="lesson-section opening" id="langchain" data-title="LangChain">
+        <div class="eyebrow"><span class="chapter-number">01</span> COMPOR COMPONENTES</div>
+        <h1>LangChain e LangGraph:<br><span>Construindo aplicações com LLMs</span></h1>
+        <p class="subtitle">Do prompt ao controle de fluxos com estado, decisões e agentes</p>
+        <div class="section-heading"><h2>Por que LangChain?</h2><span class="section-marker">O ponto de partida</span></div>
+        <p class="lead">Chamar uma LLM é só uma etapa. Conforme a aplicação cresce, precisamos conectar prompts, modelos, parsers, ferramentas, documentos e retrievers.</p>
+        <div class="diagram-panel pipeline-panel">
+          <div class="panel-heading"><span>UMA CHAIN, PASSO A PASSO</span><button class="button primary compact" id="pipeline-run"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m5 3 8 5-8 5Z"/></svg>Executar pipeline</button></div>
+          <div class="pipeline" id="pipeline"><div class="pipeline-node endpoint" data-pipe="0"><span class="node-icon">IN</span><strong>Entrada</strong><small>Uma pergunta</small></div><span class="connector" aria-hidden="true">→</span><div class="pipeline-node" data-pipe="1"><span class="node-icon">{ }</span><strong>Prompt</strong><small>Define a instrução</small></div><span class="connector" aria-hidden="true">→</span><div class="pipeline-node" data-pipe="2"><span class="node-icon">LLM</span><strong>Model</strong><small>Gera a resposta</small></div><span class="connector" aria-hidden="true">→</span><div class="pipeline-node" data-pipe="3"><span class="node-icon">[ ]</span><strong>Parser</strong><small>Organiza a saída</small></div><span class="connector" aria-hidden="true">→</span><div class="pipeline-node endpoint" data-pipe="4"><span class="node-icon">OUT</span><strong>Saída</strong><small>Um resultado útil</small></div></div>
+          <div class="diagram-status" id="pipeline-status" role="status">A saída de cada componente alimenta o próximo.</div>
+        </div>
+        <div class="composition-line"><code><span class="code-blue">prompt</span> <span class="code-muted">|</span> <span class="code-blue">model</span> <span class="code-muted">|</span> <span class="code-blue">parser</span></code><p>O operador <code>|</code> compõe um pipeline.</p></div>
+        <aside class="note"><strong>LangChain não é obrigatório para usar uma LLM.</strong><p>É uma camada de abstração e composição. Uma aplicação simples pode utilizar diretamente o SDK do provedor.</p></aside>
+        <a class="next-topic" href="#langgraph">A seguir <strong>Quando uma sequência não basta</strong><span>02</span></a>
+      </section>
+
+      <section class="lesson-section" id="langgraph" data-title="LangGraph">
+        <div class="eyebrow"><span class="chapter-number">02</span> CONTROLAR O FLUXO</div>
+        <h2>Quando o fluxo deixa de ser<br>apenas uma sequência</h2>
+        <p class="lead">Uma chain linear conecta etapas. Mas o próximo passo pode depender do resultado anterior — e às vezes precisamos voltar.</p>
+        <div class="diagram-panel">
+          <div class="panel-heading"><span>DA CHAIN AO GRAFO</span><div class="segmented" role="group" aria-label="Forma do fluxo"><button class="selected" data-flow-mode="linear" aria-pressed="true">Sequência</button><button data-flow-mode="branch" aria-pressed="false">Decisão</button><button data-flow-mode="cycle" aria-pressed="false">Ciclo</button></div></div>
+          <svg class="flow-svg" id="evolution-graph" viewBox="0 0 760 245" role="img" aria-labelledby="evolution-title"><title id="evolution-title">Fluxo linear: Entrada, A, B, C e D</title><defs><marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="m0 0 10 5-10 5Z" fill="currentColor"/></marker></defs><g id="evolution-lines"></g><g id="evolution-nodes"></g></svg>
+          <p class="diagram-status" id="evolution-caption" role="status">A → B → C → D: o caminho já está definido.</p>
+        </div>
+        <p class="question" id="evolution-question">E se o próximo passo depender do resultado anterior?</p>
+        <div class="two-col definition-row"><div><h3>Esse é o papel do LangGraph.</h3><p>Construir aplicações com estado usando grafos. Nós controlamos quais etapas executam, como o estado muda e quando o fluxo continua.</p></div><div class="inline-list"><span>Estado</span><span>Decisões</span><span>Caminhos</span><span>Ciclos</span><span>Persistência</span><span>Interrupções</span><span>Retomada</span></div></div>
+        <div class="mini-graph" aria-label="START, Classificar, caminhos A ou B, END"><code>START</code><span>↓</span><strong>CLASSIFICAR</strong><div class="branch-pair"><div><span>↙</span><b>A</b></div><div><span>↘</span><b>B</b></div></div><span>↘ &nbsp; ↙</span><code>END</code></div>
+      </section>
+
+      <section class="lesson-section" id="comparacao" data-title="LangChain vs LangGraph">
+        <div class="eyebrow"><span class="chapter-number">03</span> PAPÉIS QUE SE COMPLEMENTAM</div>
+        <h2>LangChain organiza componentes.<br>LangGraph organiza o fluxo.</h2>
+        <div class="comparison-grid"><article><div class="comparison-label">LANGCHAIN</div><h3>Composição de componentes.</h3><div class="simple-flow"><span>Prompt</span><b>→</b><span>Model</span><b>→</b><span>Parser</span></div><p>Como cada etapa processa a informação.</p></article><article><div class="comparison-label">LANGGRAPH</div><h3>Orquestração e controle do fluxo.</h3><div class="simple-flow"><span>State</span><b>→</b><span>Node</span><b>→</b><span>Decisão</span></div><div class="route-pills"><span>↙ Caminho A</span><span>↘ Caminho B</span></div><p>Qual etapa executa e com quais dados.</p></article></div>
+        <div class="statement">LangChain e LangGraph não são concorrentes.</div>
+        <div class="nested-graph"><div class="nested-title">LANGGRAPH <span>O fluxo da aplicação</span></div><div class="nested-nodes"><div><strong>Node A</strong><div class="inner-chain">Prompt <span>→</span> Model <span>→</span> Parser<small>Componentes do LangChain</small></div></div><span class="connector">→</span><div><strong>Node B</strong><div class="inner-chain">Prompt <span>→</span> Model <span>→</span> Parser<small>Componentes do LangChain</small></div></div></div></div>
+        <p class="takeaway">Podemos utilizar componentes do LangChain dentro dos nodes do LangGraph.</p>
+      </section>
+
+      <section class="lesson-section" id="state" data-title="State">
+        <div class="eyebrow"><span class="chapter-number">04</span> OS DADOS DO FLUXO</div>
+        <h2>Três conceitos. Um grafo.</h2><p class="lead">Explore cada peça. Depois acompanhe o mesmo exemplo avançando pelo atendimento.</p>
+        <div class="concept-tabs" role="tablist" aria-label="Conceitos principais"><button id="concept-state" class="selected" role="tab" aria-selected="true" aria-controls="concept-panel" data-concept="state"><span>01</span><strong>State</strong><small>Os dados</small></button><button id="concept-node" role="tab" aria-selected="false" aria-controls="concept-panel" tabindex="-1" data-concept="node"><span>02</span><strong>Node</strong><small>O processamento</small></button><button id="concept-edge" role="tab" aria-selected="false" aria-controls="concept-panel" tabindex="-1" data-concept="edge"><span>03</span><strong>Edge</strong><small>O caminho</small></button></div>
+        <div class="concept-detail" id="concept-panel" role="tabpanel" aria-labelledby="concept-state" tabindex="0"><div><h3 id="concept-title">Os dados compartilhados pelo fluxo.</h3><p id="concept-description">O state muda conforme as etapas executam. Cada node lê os dados disponíveis e pode atualizar parte deles.</p></div><pre id="concept-example"><code>{
+  mensagem: "Quero cancelar meu plano",
+  categoria: "cancelamento",
+  resposta: ""
+}</code></pre></div>
+        <div class="section-heading"><h3>O mesmo state, em momentos diferentes</h3><div class="segmented" role="group" aria-label="Momento do state"><button class="selected" data-state-step="0" aria-pressed="true">Entrada</button><button data-state-step="1" aria-pressed="false">Classificado</button><button data-state-step="2" aria-pressed="false">Respondido</button></div></div>
+        <pre class="code-block"><code id="state-code">{
+  "mensagem": "Quero cancelar meu plano",
+  "categoria": "",
+  "resposta": ""
+}</code></pre><p class="caption" id="state-caption" role="status">Na entrada, temos a mensagem. As outras informações ainda serão preenchidas.</p>
+      </section>
+
+      <section class="lesson-section" id="nodes" data-title="Nodes">
+        <div class="eyebrow"><span class="chapter-number">05</span> ETAPAS DE PROCESSAMENTO</div>
+        <h2>Um node faz um trabalho.</h2><p class="lead">Recebe o state e normalmente devolve atualizações para ele. Pode chamar uma LLM, executar uma regra ou consultar uma ferramenta.</p>
+        <div class="node-demo diagram-panel"><div class="state-preview"><span class="micro-label">STATE</span><code>mensagem: "Quero cancelar meu plano"<br>categoria: ""<br>resposta: ""</code></div><span class="connector">→</span><div class="function-node"><span class="micro-label">NODE</span><code>classificar_cliente(state)</code></div><span class="connector">→</span><div class="state-preview update-preview"><span class="micro-label">PARTIAL STATE</span><code>{ categoria: "cancelamento" }</code></div></div>
+        <aside class="note"><strong>Retornar uma atualização não apaga o restante do state.</strong><p>O grafo aplica os valores retornados. Neste exemplo, a categoria muda e a mensagem permanece.</p></aside>
+      </section>
+
+      <section class="lesson-section" id="edges" data-title="Edges">
+        <div class="eyebrow"><span class="chapter-number">06</span> CONECTAR AS ETAPAS</div>
+        <h2>Edges definem para onde seguir.</h2><p class="lead">Uma edge fixa conecta dois nodes. Uma conditional edge escolhe o próximo node a partir do estado.</p>
+        <div class="edge-examples"><div><span class="micro-label">CAMINHO FIXO</span><div class="simple-flow"><span>Node A</span><b>→</b><span>Node B</span></div><p>Depois de A, sempre B.</p></div><div><span class="micro-label">CAMINHO CONDICIONAL</span><div class="simple-flow"><span>Node A</span><b>→</b><span>B <em>ou</em> C</span></div><p>Depois de A, uma decisão.</p></div></div>
+        <div class="subsection-head"><span class="micro-label">EXEMPLO DA AULA</span><h3>Vamos construir um roteador de atendimento</h3><p>Escolha uma solicitação e acompanhe o caminho e as atualizações do state.</p></div>
+        <div class="simulator diagram-panel"><div class="simulator-controls"><label for="customer-message">Mensagem do cliente</label><div class="input-row"><select id="customer-message"><option>Minha internet parou de funcionar.</option><option>Quero cancelar meu plano.</option><option>Minha fatura veio errada.</option><option>Quero conhecer os planos disponíveis.</option></select><button class="button primary" id="router-run">Executar fluxo</button><button class="button subtle" id="router-reset">Reiniciar</button></div></div>
+          <div class="router-layout"><div class="router-graph" id="router-graph"><span class="terminal" data-route-step="start">START</span><div class="vertical-connector">↓</div><div class="graph-node" data-route-step="classify">Classificar</div><div class="vertical-connector">↓</div><div class="decision-node" data-route-step="decide">escolher_rota(state)</div><div class="route-fan" aria-hidden="true"><svg viewBox="0 0 640 46" preserveAspectRatio="none"><path d="M320 0V16M80 46V16H560V46M240 16V46M400 16V46"/><path data-route-line="tecnico" d="M320 0V16H80V46"/><path data-route-line="financeiro" d="M320 0V16H240V46"/><path data-route-line="cancelamento" d="M320 0V16H400V46"/><path data-route-line="comercial" d="M320 0V16H560V46"/></svg></div><div class="route-nodes"><div data-route="tecnico"><strong>Técnico</strong><small>Conexão e suporte</small></div><div data-route="financeiro"><strong>Financeiro</strong><small>Faturas e cobranças</small></div><div data-route="cancelamento"><strong>Cancelamento</strong><small>Encerrar o plano</small></div><div data-route="comercial"><strong>Comercial</strong><small>Planos e ofertas</small></div></div><div class="vertical-connector">↓</div><span class="terminal" data-route-step="end">END</span></div><div class="live-state"><div class="micro-label">STATE EM EXECUÇÃO</div><pre><code id="router-state">{
+  "mensagem": "",
+  "categoria": "",
+  "resposta": ""
+}</code></pre><p id="router-status" role="status">Pronto para receber uma mensagem.</p></div></div>
+        </div><p class="caption">Simulação por palavras-chave. No notebook substituiremos algumas dessas regras por uma LLM.</p>
+      </section>
+
+      <section class="lesson-section" id="conditional" data-title="Conditional Edges">
+        <div class="eyebrow"><span class="chapter-number">07</span> O STATE ORIENTA A DECISÃO</div>
+        <h2>Uma decisão. Quatro caminhos.</h2><p class="lead">Uma conditional edge utiliza uma função para decidir qual será o próximo node. No nosso atendimento, a função lê a categoria.</p>
+        <div class="conditional-layout"><div><pre class="code-block"><code><span class="syntax-purple">def</span> <span class="syntax-blue">escolher_rota</span>(state):
+    <span class="syntax-purple">return</span> state[<span class="syntax-green">"categoria"</span>]</code></pre><p class="caption">O valor retornado é mapeado para o node de destino.</p></div><div class="conditional-demo"><div class="graph-node">classificar</div><span class="vertical-connector">↓</span><div class="decision-node">escolher_rota(state)</div><span class="vertical-connector">↓</span><div class="conditional-options" role="group" aria-label="Escolher uma categoria"><button class="selected" data-conditional="tecnico" aria-pressed="true">Técnico</button><button data-conditional="financeiro" aria-pressed="false">Financeiro</button><button data-conditional="cancelamento" aria-pressed="false">Cancelamento</button><button data-conditional="comercial" aria-pressed="false">Comercial</button></div></div></div>
+        <div class="conditional-result" role="status"><code id="conditional-value">state["categoria"] = "tecnico"</code><span id="conditional-caption">O próximo node será: Técnico.</span></div>
+      </section>
+
+      <section class="lesson-section" id="prompts" data-title="Prompt Engineering">
+        <div class="eyebrow"><span class="chapter-number">08</span> PROMPTS DENTRO DOS NODES</div>
+        <h2>Reduzir ambiguidade.<br>Melhorar a decisão.</h2><p class="lead">O node de classificação precisa de uma instrução clara para devolver uma categoria que o grafo consiga usar.</p>
+        <div class="prompt-grid"><article class="vague-prompt"><span class="micro-label">PROMPT VAGO</span><blockquote>“Classifique essa mensagem.”</blockquote><p class="question">Classificar como o quê?</p><p>Sem categorias ou formato definidos, a resposta pode não servir à função de roteamento.</p><div class="prompt-output"><span>UMA SAÍDA POSSÍVEL</span><p>“O cliente parece insatisfeito com o serviço.”</p></div></article><article class="structured-prompt"><div class="panel-heading"><span>PROMPT ESTRUTURADO</span><button class="button subtle compact" id="prompt-reveal" aria-expanded="false">Montar passo a passo</button></div><div id="prompt-parts"><div data-prompt-part="0"><b>PAPEL</b><p>Você classifica solicitações de clientes.</p></div><div data-prompt-part="1"><b>CONTEXTO</b><p>Atendimento de uma empresa de telefonia.</p></div><div data-prompt-part="2"><b>TAREFA</b><p>Classifique a mensagem recebida.</p></div><div data-prompt-part="3"><b>CATEGORIAS E REGRAS</b><p><code>tecnico · financeiro · cancelamento · comercial</code><br>Escolha apenas uma categoria.</p></div><div data-prompt-part="4"><b>FORMATO</b><p>Retorne somente o nome da categoria.</p></div><div data-prompt-part="5"><b>EXEMPLO</b><p>“Minha fatura veio errada.” → <code>financeiro</code></p></div></div></article></div>
+        <div class="prompt-check"><span>Mensagem: “Quero cancelar meu plano.”</span><button class="button primary" id="prompt-compare">Comparar saídas</button></div><div id="prompt-result" class="comparison-result" role="status" hidden><div><span>VAGO · SAÍDA POSSÍVEL</span><p>“Pedido de encerramento do serviço.”</p></div><div><span>ESTRUTURADO · SAÍDA ESPERADA</span><code>cancelamento</code></div><p class="caption">Exemplos ilustrativos. Um prompt claro reduz ambiguidade; validação da saída ainda é necessária.</p></div>
+        <p class="takeaway">Prompt engineering não é escrever textos gigantes. É reduzir ambiguidade.</p>
+      </section>
+
+      <section class="lesson-section" id="providers" data-title="Providers">
+        <div class="eyebrow"><span class="chapter-number">09</span> MODELOS COMO INFRAESTRUTURA</div>
+        <h2>E qual modelo vamos usar?</h2><p class="lead">O provider dá acesso ao modelo. LangChain e LangGraph organizam como ele participa da aplicação.</p>
+        <div class="simple-flow infrastructure"><span>Aplicação</span><b>→</b><span>LangChain / LangGraph</span><b>→</b><span>Provider</span><b>→</b><span>Model</span></div>
+        <div class="provider-grid"><article><h3>OpenRouter <span>API unificada</span></h3><p>Acesso a modelos de diferentes empresas por uma API. Há opções gratuitas sujeitas a limites, além de modelos com preços diferentes.</p><a href="https://openrouter.ai/models" target="_blank" rel="noopener noreferrer">Catálogo do OpenRouter</a></article><article><h3>Groq <span>Inferência</span></h3><p>Provider de inferência com foco em execução rápida. Disponibiliza diferentes modelos, com limites e capacidades próprios.</p><a href="https://console.groq.com/docs/models" target="_blank" rel="noopener noreferrer">Catálogo da Groq</a></article></div>
+        <div class="table-wrap"><table><caption>Características para escolher um modelo</caption><thead><tr><th scope="col">Tipo</th><th scope="col">Em geral</th><th scope="col">Quando considerar</th></tr></thead><tbody><tr><th scope="row">Modelo pequeno</th><td>Menor custo e maior velocidade</td><td>Tarefas simples e bem delimitadas</td></tr><tr><th scope="row">Modelo maior</th><td>Maior capacidade; normalmente maior custo e consumo</td><td>Tarefas mais exigentes</td></tr><tr><th scope="row">Reasoning model</th><td>Raciocínio mais elaborado; pode consumir mais tokens</td><td>Problemas com várias etapas</td></tr><tr><th scope="row">Multimodal</th><td>Mais de uma modalidade, conforme o modelo</td><td>Entradas com texto, imagem ou áudio</td></tr></tbody></table></div>
+        <div class="catalog-fields"><span>Preço de entrada</span><span>Preço de saída</span><span>Context window</span><span>Capabilities</span></div><p class="caption">Consulte sempre o catálogo atual do provider. Custo, latência e qualidade variam por modelo e tarefa.</p>
+        <div class="local-models"><h3>E modelos locais?</h3><p>Podemos executar modelos localmente com ferramentas como Ollama. Isso depende de recursos como RAM e VRAM. Modelos quantizados exigem menos recursos, com trade-offs de qualidade e desempenho. Nesta aula utilizaremos APIs para evitar diferenças de hardware entre os alunos.</p></div>
+        <div class="subsection-head"><span class="micro-label">CONECTANDO AS PEÇAS</span><h3>Do provider para o LangGraph</h3><p>Clique em cada elemento para situá-lo na arquitetura.</p></div>
+        <div class="integration-flow" role="group" aria-label="Camadas da aplicação"><button data-integration="provider" class="selected" aria-pressed="true">OpenRouter / Groq</button><span>→</span><button data-integration="model" aria-pressed="false">Model</button><span>→</span><button data-integration="prompt" aria-pressed="false">PromptTemplate</button><span>→</span><button data-integration="node" aria-pressed="false">Node</button><span>→</span><button data-integration="state" aria-pressed="false">State</button><span>→</span><button data-integration="graph" aria-pressed="false">LangGraph</button></div>
+        <p class="integration-caption" id="integration-caption" role="status">Provider: a infraestrutura que oferece acesso aos modelos.</p><p class="caption">Mapa de composição da aplicação. Na execução de uma chain, o prompt é preparado antes de chamar o modelo.</p>
+      </section>
+
+      <section class="lesson-section" id="checkpoints" data-title="Checkpoints">
+        <div class="eyebrow"><span class="chapter-number">10</span> SALVAR E RETOMAR</div>
+        <h2>O fluxo avança.<br>O estado fica registrado.</h2><p class="lead">Um checkpoint é um snapshot persistido do estado do grafo. Com um checkpointer, ele é salvo nos limites dos passos de execução.</p>
+        <div class="checkpoint-demo diagram-panel"><div class="panel-heading"><span>UMA CONVERSA, VÁRIOS SNAPSHOTS</span><code>thread_id = "cliente-001"</code></div><div class="checkpoint-track"><code>START</code><span>→</span><button class="selected" data-checkpoint="0" aria-pressed="true"><strong>A</strong><small>Receber</small></button><span>→</span><button data-checkpoint="1" aria-pressed="false"><strong>B</strong><small>Classificar</small></button><span>→</span><button data-checkpoint="2" aria-pressed="false"><strong>C</strong><small>Responder</small></button></div><div class="checkpoint-snapshots"><button class="selected" data-checkpoint="0" aria-pressed="true"><span>CHECKPOINT 1</span><strong>State após A</strong></button><button data-checkpoint="1" aria-pressed="false"><span>CHECKPOINT 2</span><strong>State após B</strong></button><button data-checkpoint="2" aria-pressed="false"><span>CHECKPOINT 3</span><strong>State após C</strong></button></div><div class="checkpoint-state"><div><span class="micro-label" id="checkpoint-label">CHECKPOINT 1 · APÓS A</span><p id="checkpoint-caption" role="status">A mensagem foi recebida. A categoria ainda não foi definida.</p></div><pre><code id="checkpoint-code">{
+  "mensagem": "Minha fatura veio errada.",
+  "categoria": "",
+  "resposta": ""
+}</code></pre></div></div>
+        <div class="inline-list checkpoint-uses"><span>Memória de curto prazo</span><span>Recuperação</span><span>Debugging</span><span>Human-in-the-loop</span><span>Retomada</span><span>Auditoria</span></div><aside class="note"><strong>InMemorySaver é útil para aprendizado e testes.</strong><p>Os dados ficam em memória e desaparecem quando a aplicação é encerrada. Persistência entre reinícios exige um armazenamento durável.</p></aside>
+        <div class="subsection-head"><span class="micro-label">ARQUITETURA FINAL DA AULA</span><h3>Todas as peças, no mesmo fluxo.</h3></div>
+        <div class="diagram-panel architecture-panel"><div class="panel-heading"><span>ROTEADOR DE ATENDIMENTO</span><button class="button primary compact" id="architecture-next">Adicionar State</button></div><div class="architecture-layout"><div class="architecture-flow"><div class="graph-node">Mensagem</div><span>↓</span><div class="graph-node">Classificar</div><span>↓</span><div class="architecture-routes"><span>Técnico</span><span>Financeiro</span><span>Cancelamento</span><span>Comercial</span></div><span>↓</span><div class="graph-node">Resposta</div><span>↓</span><code class="terminal">END</code></div><div class="architecture-layers"><div class="architecture-layer" data-layer="0" hidden><span>01</span><div><strong>State</strong><p>Mensagem, categoria e resposta compartilhadas.</p></div></div><div class="architecture-layer" data-layer="1" hidden><span>02</span><div><strong>Conditional Edges</strong><p>A categoria determina a rota de atendimento.</p></div></div><div class="architecture-layer" data-layer="2" hidden><span>03</span><div><strong>Prompts + LLM</strong><p>Uma chain do LangChain pode executar dentro de cada node.</p></div></div><div class="architecture-layer" data-layer="3" hidden><span>04</span><div><strong>Checkpoints</strong><p>Snapshots associados à conversa para salvar e retomar.</p></div></div><p id="architecture-hint">O caminho está montado. Adicione as peças que controlam sua execução.</p></div></div><p class="diagram-status" id="architecture-status" role="status">Fluxo base · 0 de 4 camadas</p></div>
+        <p class="takeaway">LangChain dentro dos nodes. LangGraph no controle do fluxo.</p>
+      </section>
+
+      <section class="lesson-section" id="rag" data-title="Próximo passo: RAG">
+        <div class="eyebrow"><span class="chapter-number">11</span> ADICIONAR CONHECIMENTO</div>
+        <h2>E se o modelo precisar consultar<br>informações da empresa?</h2><blockquote class="customer-question">“Qual é a regra da empresa para trocar meu plano?”</blockquote><p class="question">O modelo não deveria inventar essa resposta.</p>
+        <div class="diagram-panel rag-panel"><div class="panel-heading"><span>O PRÓXIMO NODE DO NOSSO GRAFO</span><button class="button primary compact" id="rag-expand" aria-expanded="false">Adicionar consulta RAG</button></div><div class="rag-flow"><span>Mensagem</span><b>→</b><span>Classificar</span><b>→</b><span class="rag-decision">Precisa de informação externa?</span></div><div id="rag-expansion" hidden><div class="retrieval-flow"><span>Consulta RAG</span><b>→</b><span>Retriever</span><b>→</b><span>Vector Database<small>Índice dos documentos</small></span></div><div class="retrieval-context"><div><strong>Documentos da empresa</strong><p>Políticas, contratos e procedimentos alimentam o índice.</p></div><span>→</span><div><strong>Trechos relevantes + prompt</strong><p>O modelo recebe contexto para produzir uma resposta fundamentada.</p></div></div></div><div class="rag-response"><span>↓</span><strong id="rag-response-label">Resposta</strong></div></div>
+        <p class="lead closing-lead">Na próxima aula, vamos adicionar conhecimento ao nosso grafo sem precisar treinar um novo modelo.</p><div class="next-topics"><span>RAG</span><span>Embeddings</span><span>Chunking</span><span>Vector Database</span><span>Retrievers</span><span>Temperature</span></div>
+        <div class="journey"><span>LLM</span><b>→</b><span>Prompt</span><b>→</b><span>LangChain</span><b>→</b><span>Chain</span><b>→</b><span>State</span><b>→</b><span>Node</span><b>→</b><span>Edge</span><b>→</b><span>Conditional Edge</span><b>→</b><span>LangGraph</span><b>→</b><span>Checkpoint</span><b>→</b><strong>Fluxo controlado</strong></div>
+        <div class="closing-statement">LangChain organiza componentes.<br><strong>LangGraph organiza o fluxo.</strong></div><p>Podemos usar LangChain dentro dos nodes de um LangGraph.</p>
+        <footer><span>Material de apoio · LangChain & LangGraph</span><div><a href="https://docs.langchain.com/oss/python/langchain/overview" target="_blank" rel="noopener noreferrer">Docs LangChain</a><a href="https://docs.langchain.com/oss/python/langgraph/graph-api" target="_blank" rel="noopener noreferrer">Docs LangGraph</a><a href="https://docs.langchain.com/oss/python/langgraph/persistence" target="_blank" rel="noopener noreferrer">Persistência</a></div></footer>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

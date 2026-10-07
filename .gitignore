@@ -1,2 +1,5 @@
 .qa/
+.openai/
+.sites-runtime/
+dist/
 *.tar.gz
